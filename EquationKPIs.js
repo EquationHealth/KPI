@@ -125,9 +125,9 @@ if (Meteor.isServer) {
      * Zendesk
      * @type {string}
      */
-    var ZendeskUsername = 'gortiz@equationconsulting.com',
-        ZendeskPassword = '2tarBuck2',
-        ZendeskUrl = 'https://equationconsulting.zendesk.com/api/v2/views/',
+    var ZendeskUsername = Meteor.settings.ZendeskUsername,
+        ZendeskPassword = Meteor.settings.ZendeskPassword,
+        ZendeskUrl = Meteor.settings.ZendeskUrl,
         ZendeskAuth = 'Basic ' + new Buffer(ZendeskUsername + ':' + ZendeskPassword).toString('base64');
 
     var ZendeskOptions = {
@@ -142,9 +142,9 @@ if (Meteor.isServer) {
      * Mingle
      * @type {string}
      */
-    var MingleUsername = 'gortiz@equationconsulting.com',
-        MinglePassword = '3ataRiver!',
-        MingleUrl = 'https://eqc.mingle.thoughtworks.com/api/v2/projects/datariver/cards/execute_mql.json',
+    var MingleUsername = Meteor.settings.MingleUsername,
+        MinglePassword = Meteor.settings.MinglePassword,
+        MingleUrl = Meteor.settings.MingleUrl,
         MingleAuth = 'Basic ' + new Buffer(MingleUsername + ':' + MinglePassword).toString('base64'),
         MingleActiveSprint = '529',
         MingleStartSprint = '529';
@@ -161,8 +161,8 @@ if (Meteor.isServer) {
      * Beanstalk
      * @type {string}
      */
-    var BeanstalkUsername = 'georgeortiz',
-        BeanstalkPassword = 'dd3f4245ac7727986d611eb01d4b18e7a28f95aa34b75556',
+    var BeanstalkUsername = Meteor.settings.BeanstalkUsername,
+        BeanstalkPassword = Meteor.settings.BeanstalkPassword,
         BeanstalkAuth = 'Basic ' + new Buffer(BeanstalkUsername + ':' + BeanstalkPassword).toString('base64');
 
     var BeanstalkOptions = {
