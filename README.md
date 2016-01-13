@@ -1,4 +1,4 @@
-# KPI
+# KPI Dashboard
 
 A simple app to retrieve and display KPIs for Equation. Currently only listing KPIs for Engineering.
 
