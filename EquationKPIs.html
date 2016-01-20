@@ -8,13 +8,9 @@
      ng-controller="EquationKPICtrl">
 
     <div class="row">
-        <div class="col-md-6" ng-repeat="ticketType in tickets">
-            <div class="panel panel-default">
-                <div class="panel-heading">{{ticketType.name}}</div>
-                <div class="panel-body">
-                    <h2>{{ticketType.value}}</h2>
-                </div>
-            </div>
+        <div class="col-md-2 simple" ng-repeat="ticketType in tickets">
+            <h1>{{ticketType.value}}</h1>
+            <p>{{ticketType.name}}</p>
         </div>
     </div>
 
@@ -22,12 +18,12 @@
         <div class="col-md-3">
             <div class="panel panel-default">
                 <div class="panel-heading">Current Sprint</div>
-                <table class="table">
+                <table class="table table-striped">
                     <thead>
                     <th>Status</th>
                     <th>Cards</th>
                     </thead>
-                    <tbody class="table-striped">
+                    <tbody>
                     <tr ng-repeat="sprint in sprints">
                         <td>{{sprint.status}}</td>
                         <td>{{sprint.count}}</td>
@@ -40,12 +36,12 @@
         <div class="col-md-3">
             <div class="panel panel-default">
                 <div class="panel-heading">Current Sprint by Owner</div>
-                <table class="table">
+                <table class="table table-striped">
                     <thead>
                     <th>Owner</th>
                     <th>Cards Complete</th>
                     </thead>
-                    <tbody class="table-striped">
+                    <tbody>
                     <tr ng-repeat="sprintOwner in sprintOwners">
                         <td>{{sprintOwner.owner}}</td>
                         <td>{{sprintOwner.count}}</td>
@@ -58,12 +54,12 @@
         <div class="col-md-3">
             <div class="panel panel-default">
                 <div class="panel-heading">YTD Sprints</div>
-                <table class="table">
+                <table class="table table-striped">
                     <thead>
                     <th>Sprint</th>
                     <th>Cards Complete</th>
                     </thead>
-                    <tbody class="table-striped">
+                    <tbody>
                     <tr ng-repeat="sprintYTD in sprintsYTD">
                         <td>{{sprintYTD.sprint}}</td>
                         <td>{{sprintYTD.count}}</td>
@@ -76,12 +72,12 @@
         <div class="col-md-3">
             <div class="panel panel-default">
                 <div class="panel-heading">YTD by Owner</div>
-                <table class="table">
+                <table class="table table-striped">
                     <thead>
                     <th>Owner</th>
                     <th>Cards Complete</th>
                     </thead>
-                    <tbody class="table-striped">
+                    <tbody>
                     <tr ng-repeat="sprintOwnerYTD in sprintOwnersYTD">
                         <td>{{sprintOwnerYTD.owner}}</td>
                         <td>{{sprintOwnerYTD.count}}</td>
@@ -96,14 +92,14 @@
         <div class="col-md-12">
             <div class="panel panel-default">
                 <div class="panel-heading">Commit Feed</div>
-                <table class="table">
+                <table class="table table-striped">
                     <thead>
                     <th>Commit</th>
                     <th>Time</th>
                     <th>Author</th>
                     <th>Message</th>
                     </thead>
-                    <tbody class="table-striped">
+                    <tbody>
                     <tr ng-repeat="commit in commitFeed">
                         <td>{{commit.revision}}</td>
                         <td>{{commit.time}}</td>

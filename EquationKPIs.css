@@ -1,0 +1,41 @@
+/* Bootstrap */
+.row {
+    margin-top: 30px;
+}
+
+/* Metrics */
+.simple {
+    text-align:center;
+}
+.simple h1 {
+
+}
+.simple p {
+    color: #999;
+    font-size: 12px;
+}
+
+/* Panels */
+.panel-default > .panel-heading {
+    color: #04667a;
+    background: none;
+    font-weight: bold;
+}
+.panel .table thead tr th {
+    font-size: 11px;
+    color: #999;
+    padding-left: 15px;
+    text-transform: uppercase;
+    font-weight:normal;
+    text-align: right;
+    border: none;
+}
+.panel .table tbody tr td {
+    font-size: 12px;
+    padding-left: 15px;
+    text-align: right;
+}
+.panel .table thead tr th:nth-child(1),
+.panel .table tbody tr td:nth-child(1) {
+    text-align:left;
+}

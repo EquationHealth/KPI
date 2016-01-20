@@ -38,7 +38,7 @@ if (Meteor.isClient) {
             Meteor.call("zendesk_UnsolvedTickets", function (error, results) {
                 var json = JSON.parse(results);
                 $scope.tickets.push({
-                    'name': 'Unsolved Tickets',
+                    'name': 'Total Tickets',
                     'value': json.view_count.pretty
                 });
                 console.log($scope.metrics);
@@ -49,6 +49,36 @@ if (Meteor.isClient) {
                 var json = JSON.parse(results);
                 $scope.tickets.push({
                     'name': 'Open Tickets',
+                    'value': json.view_count.pretty
+                });
+                console.log($scope.metrics);
+                $scope.$apply();
+            });
+
+            Meteor.call("zendesk_NewTickets", function (error, results) {
+                var json = JSON.parse(results);
+                $scope.tickets.push({
+                    'name': 'New Tickets',
+                    'value': json.view_count.pretty
+                });
+                console.log($scope.metrics);
+                $scope.$apply();
+            });
+
+            Meteor.call("zendesk_PendingTickets", function (error, results) {
+                var json = JSON.parse(results);
+                $scope.tickets.push({
+                    'name': 'Pending Tickets',
+                    'value': json.view_count.pretty
+                });
+                console.log($scope.metrics);
+                $scope.$apply();
+            });
+
+            Meteor.call("zendesk_HoldTickets", function (error, results) {
+                var json = JSON.parse(results);
+                $scope.tickets.push({
+                    'name': 'On-Hold Tickets',
                     'value': json.view_count.pretty
                 });
                 console.log($scope.metrics);
@@ -189,6 +219,36 @@ if (Meteor.isServer) {
         zendesk_OpenTickets: function () {
             var zendesk = Async.runSync(function (done) {
                 ZendeskOptions.url = ZendeskUrl + '38506605/count.json';
+                request(ZendeskOptions, function (error, response, body) {
+                    if (error) throw new Error(error);
+                    done(null, body);
+                });
+            });
+            return zendesk.result;
+        },
+        zendesk_NewTickets: function () {
+            var zendesk = Async.runSync(function (done) {
+                ZendeskOptions.url = ZendeskUrl + '34858922/count.json';
+                request(ZendeskOptions, function (error, response, body) {
+                    if (error) throw new Error(error);
+                    done(null, body);
+                });
+            });
+            return zendesk.result;
+        },
+        zendesk_PendingTickets: function () {
+            var zendesk = Async.runSync(function (done) {
+                ZendeskOptions.url = ZendeskUrl + '38151799/count.json';
+                request(ZendeskOptions, function (error, response, body) {
+                    if (error) throw new Error(error);
+                    done(null, body);
+                });
+            });
+            return zendesk.result;
+        },
+        zendesk_HoldTickets: function () {
+            var zendesk = Async.runSync(function (done) {
+                ZendeskOptions.url = ZendeskUrl + '49913396/count.json';
                 request(ZendeskOptions, function (error, response, body) {
                     if (error) throw new Error(error);
                     done(null, body);
