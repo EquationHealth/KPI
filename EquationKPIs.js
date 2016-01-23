@@ -1,3 +1,7 @@
+Tickets = new Mongo.Collection('tickets');
+Sprints = new Mongo.Collection('sprints');
+Commits = new Mongo.Collection('commits');
+
 /**
  * Client
  */
@@ -10,80 +14,23 @@ if (Meteor.isClient) {
         function ($scope) {
 
             /**
-             * Beanstalk
+             * Subscriptions
              */
+            Meteor.subscribe('recent-ticket-stats');
+            Meteor.subscribe('recent-commits');
 
-            $scope.commitFeed = [];
-
-            Meteor.call("beanstalk_CommitFeed", function (error, results) {
-                var json = JSON.parse(results);
-                console.log(json);
-                for(var i = 0; i < json.length; i++) {
-                    $scope.commitFeed.push({
-                        'revision': json[i].revision_cache.revision,
-                        'message': json[i].revision_cache.message,
-                        'author': json[i].revision_cache.author,
-                        'time': json[i].revision_cache.time
-                    });
-                    $scope.$apply();
+            /**
+             * Helpers
+             */
+            $scope.helpers({
+                ticketStats: () => {
+                    return Tickets.find({}, {sort: {datetime: -1}, limit: 5}).fetch();
+                },
+                commitFeed: () => {
+                    return Commits.find({}, {sort: {time: -1}, limit: 25}).fetch();
                 }
             });
 
-            /**
-             * Zendesk
-             */
-
-            $scope.tickets = [];
-
-            Meteor.call("zendesk_UnsolvedTickets", function (error, results) {
-                var json = JSON.parse(results);
-                $scope.tickets.push({
-                    'name': 'Total Tickets',
-                    'value': json.view_count.pretty
-                });
-                console.log($scope.metrics);
-                $scope.$apply();
-            });
-
-            Meteor.call("zendesk_OpenTickets", function (error, results) {
-                var json = JSON.parse(results);
-                $scope.tickets.push({
-                    'name': 'Open Tickets',
-                    'value': json.view_count.pretty
-                });
-                console.log($scope.metrics);
-                $scope.$apply();
-            });
-
-            Meteor.call("zendesk_NewTickets", function (error, results) {
-                var json = JSON.parse(results);
-                $scope.tickets.push({
-                    'name': 'New Tickets',
-                    'value': json.view_count.pretty
-                });
-                console.log($scope.metrics);
-                $scope.$apply();
-            });
-
-            Meteor.call("zendesk_PendingTickets", function (error, results) {
-                var json = JSON.parse(results);
-                $scope.tickets.push({
-                    'name': 'Pending Tickets',
-                    'value': json.view_count.pretty
-                });
-                console.log($scope.metrics);
-                $scope.$apply();
-            });
-
-            Meteor.call("zendesk_HoldTickets", function (error, results) {
-                var json = JSON.parse(results);
-                $scope.tickets.push({
-                    'name': 'On-Hold Tickets',
-                    'value': json.view_count.pretty
-                });
-                console.log($scope.metrics);
-                $scope.$apply();
-            });
 
             /**
              * Mingle
@@ -96,7 +43,7 @@ if (Meteor.isClient) {
 
             Meteor.call("mingle_SprintStatus", function (error, results) {
                 var json = JSON.parse(results);
-                for(var i = 0; i < json.length; i++) {
+                for (var i = 0; i < json.length; i++) {
                     $scope.sprints.push({
                         'status': json[i].Status,
                         'count': json[i]['Count ']
@@ -107,7 +54,7 @@ if (Meteor.isClient) {
 
             Meteor.call("mingle_SprintOwnerCompletion", function (error, results) {
                 var json = JSON.parse(results);
-                for(var i = 0; i < json.length; i++) {
+                for (var i = 0; i < json.length; i++) {
                     $scope.sprintOwners.push({
                         'owner': json[i].Owner,
                         'count': json[i]['Count ']
@@ -118,7 +65,7 @@ if (Meteor.isClient) {
 
             Meteor.call("mingle_YTDOwnerCompletion", function (error, results) {
                 var json = JSON.parse(results);
-                for(var i = 0; i < json.length; i++) {
+                for (var i = 0; i < json.length; i++) {
                     $scope.sprintOwnersYTD.push({
                         'owner': json[i].Owner,
                         'count': json[i]['Count ']
@@ -129,7 +76,7 @@ if (Meteor.isClient) {
 
             Meteor.call("mingle_YTDSprintCompletion", function (error, results) {
                 var json = JSON.parse(results);
-                for(var i = 0; i < json.length; i++) {
+                for (var i = 0; i < json.length; i++) {
                     $scope.sprintsYTD.push({
                         'sprint': json[i].Sprint,
                         'count': json[i]['Count ']
@@ -150,6 +97,24 @@ if (Meteor.isServer) {
      * NPM Modules
      */
     var request = Meteor.npmRequire('request');
+
+    /**
+     * Publishing
+     */
+    Meteor.publish('recent-ticket-stats', function publishFunction() {
+        return Tickets.find({}, {sort: {datetime: -1}, limit: 5});
+    });
+    Meteor.publish('recent-commits', function publishFunction() {
+        return Commits.find({}, {sort: {time: -1}, limit: 25});
+    });
+
+    /**
+     * Startup
+     */
+    Meteor.startup(function () {
+        Meteor.call('saveTickets');
+        Meteor.call('saveCommits');
+    });
 
     /**
      * Zendesk
@@ -206,6 +171,36 @@ if (Meteor.isServer) {
      * Methods
      */
     Meteor.methods({
+        saveTickets: function () {
+            var d = new Date(),
+                zendeskCalls = ['zendesk_UnsolvedTickets', 'zendesk_OpenTickets', 'zendesk_NewTickets', 'zendesk_PendingTickets', 'zendesk_HoldTickets'],
+                dataLabel = ['Total Tickets', 'Open Tickets', 'New Tickets', 'Pending Tickets', 'On-Hold Tickets'];
+            for (var i = 0; i < zendeskCalls.length; i++) {
+                Meteor.call(zendeskCalls[i], function (err, res) {
+                    var json = JSON.parse(res);
+                    var name = dataLabel[i];
+                    var val = json.view_count.pretty;
+                    Tickets.insert({
+                        'name': name,
+                        'value': val,
+                        'datetime': d
+                    });
+                });
+            }
+        },
+        saveCommits: function () {
+            Meteor.call('beanstalk_CommitFeed', function (err, res) {
+                var json = JSON.parse(res);
+                for (var i = 0; i < json.length; i++) {
+                    Commits.insert({
+                        'revision': json[i].revision_cache.revision,
+                        'message': json[i].revision_cache.message,
+                        'author': json[i].revision_cache.author,
+                        'time': json[i].revision_cache.time
+                    });
+                }
+            });
+        },
         zendesk_UnsolvedTickets: function () {
             var zendesk = Async.runSync(function (done) {
                 ZendeskOptions.url = ZendeskUrl + '32396347/count.json';
