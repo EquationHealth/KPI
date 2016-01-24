@@ -24,7 +24,7 @@
                     <th>Cards</th>
                     </thead>
                     <tbody>
-                    <tr ng-repeat="sprint in sprints">
+                    <tr ng-repeat="sprint in statusCount">
                         <td>{{sprint.status}}</td>
                         <td>{{sprint.count}}</td>
                     </tr>
@@ -42,9 +42,9 @@
                     <th>Cards Complete</th>
                     </thead>
                     <tbody>
-                    <tr ng-repeat="sprintOwner in sprintOwners">
-                        <td>{{sprintOwner.owner}}</td>
-                        <td>{{sprintOwner.count}}</td>
+                    <tr ng-repeat="owner in ownerCount">
+                        <td>{{owner.owner}}</td>
+                        <td>{{owner.count}}</td>
                     </tr>
                     </tbody>
                 </table>
@@ -60,9 +60,9 @@
                     <th>Cards Complete</th>
                     </thead>
                     <tbody>
-                    <tr ng-repeat="sprintYTD in sprintsYTD">
-                        <td>{{sprintYTD.sprint}}</td>
-                        <td>{{sprintYTD.count}}</td>
+                    <tr ng-repeat="sprint in sprintsYTD">
+                        <td>{{sprint.sprint}}</td>
+                        <td>{{sprint.count}}</td>
                     </tr>
                     </tbody>
                 </table>
@@ -78,9 +78,35 @@
                     <th>Cards Complete</th>
                     </thead>
                     <tbody>
-                    <tr ng-repeat="sprintOwnerYTD in sprintOwnersYTD">
-                        <td>{{sprintOwnerYTD.owner}}</td>
-                        <td>{{sprintOwnerYTD.count}}</td>
+                    <tr ng-repeat="owner in ownerYTD">
+                        <td>{{owner.owner}}</td>
+                        <td>{{owner.count}}</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="panel panel-default">
+                <div class="panel-heading">Cards</div>
+                <table class="table table-striped">
+                    <thead>
+                    <th>Number</th>
+                    <th>Sprint</th>
+                    <th>Status</th>
+                    <th>Name</th>
+                    <th>Owner</th>
+                    </thead>
+                    <tbody>
+                    <tr ng-repeat="card in cards">
+                        <td>{{card.number}}</td>
+                        <td>{{card.sprint}}</td>
+                        <td>{{card.status}}</td>
+                        <td>{{card.name}}</td>
+                        <td>{{card.owner}}</td>
                     </tr>
                     </tbody>
                 </table>

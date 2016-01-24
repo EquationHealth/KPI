@@ -1,5 +1,5 @@
 Tickets = new Mongo.Collection('tickets');
-Sprints = new Mongo.Collection('sprints');
+Cards = new Mongo.Collection('cards');
 Commits = new Mongo.Collection('commits');
 
 /**
@@ -14,10 +14,11 @@ if (Meteor.isClient) {
         function ($scope) {
 
             /**
-             * Subscriptions
+             * Subscribe
              */
             Meteor.subscribe('recent-ticket-stats');
             Meteor.subscribe('recent-commits');
+            Meteor.subscribe('cards');
 
             /**
              * Helpers
@@ -28,64 +29,33 @@ if (Meteor.isClient) {
                 },
                 commitFeed: () => {
                     return Commits.find({}, {sort: {time: -1}, limit: 25}).fetch();
+                },
+                cards: () => {
+                    return Cards.find({}, {sort: {number: -1}, limit: 25}).fetch();
                 }
             });
-
 
             /**
-             * Mingle
+             * Scope
              */
-
-            $scope.sprints = [];
-            $scope.sprintOwners = [];
-            $scope.sprintsYTD = [];
-            $scope.sprintOwnersYTD = [];
-
-            Meteor.call("mingle_SprintStatus", function (error, results) {
-                var json = JSON.parse(results);
-                for (var i = 0; i < json.length; i++) {
-                    $scope.sprints.push({
-                        'status': json[i].Status,
-                        'count': json[i]['Count ']
-                    });
-                    $scope.$apply();
-                }
+            Meteor.call('getStatusCount', function (err, res) {
+                $scope.statusCount = res;
+                $scope.apply();
             });
-
-            Meteor.call("mingle_SprintOwnerCompletion", function (error, results) {
-                var json = JSON.parse(results);
-                for (var i = 0; i < json.length; i++) {
-                    $scope.sprintOwners.push({
-                        'owner': json[i].Owner,
-                        'count': json[i]['Count ']
-                    });
-                    $scope.$apply();
-                }
+            Meteor.call('getOwnerCount', function (err, res) {
+                $scope.ownerCount = res;
+                $scope.apply();
             });
-
-            Meteor.call("mingle_YTDOwnerCompletion", function (error, results) {
-                var json = JSON.parse(results);
-                for (var i = 0; i < json.length; i++) {
-                    $scope.sprintOwnersYTD.push({
-                        'owner': json[i].Owner,
-                        'count': json[i]['Count ']
-                    });
-                    $scope.$apply();
-                }
+            Meteor.call('getYTDSprints', function (err, res) {
+                $scope.sprintsYTD = res;
+                $scope.apply();
             });
-
-            Meteor.call("mingle_YTDSprintCompletion", function (error, results) {
-                var json = JSON.parse(results);
-                for (var i = 0; i < json.length; i++) {
-                    $scope.sprintsYTD.push({
-                        'sprint': json[i].Sprint,
-                        'count': json[i]['Count ']
-                    });
-                    $scope.$apply();
-                }
+            Meteor.call('getYTDOwner', function (err, res) {
+                $scope.ownerYTD = res;
+                $scope.apply();
             });
-
-        }]);
+        }
+    ]);
 }
 
 /**
@@ -99,7 +69,7 @@ if (Meteor.isServer) {
     var request = Meteor.npmRequire('request');
 
     /**
-     * Publishing
+     * Publish
      */
     Meteor.publish('recent-ticket-stats', function publishFunction() {
         return Tickets.find({}, {sort: {datetime: -1}, limit: 5});
@@ -107,14 +77,27 @@ if (Meteor.isServer) {
     Meteor.publish('recent-commits', function publishFunction() {
         return Commits.find({}, {sort: {time: -1}, limit: 25});
     });
+    Meteor.publish('cards', function publishFunction() {
+        return Cards.find({}, {sort: {number: -1}, limit: 25});
+    });
+
 
     /**
      * Startup
      */
     Meteor.startup(function () {
-        Meteor.call('saveTickets');
-        Meteor.call('saveCommits');
+        if (Meteor.isServer) {
+            Commits.remove({});
+            Cards.remove({});
+            Meteor.call('saveTickets');
+            Meteor.call('saveCommits');
+            Meteor.call('saveCards');
+        }
     });
+
+    //Meteor.setInterval(function(){
+    //    Meteor.call('saveCards');
+    //}, 5000);
 
     /**
      * Zendesk
@@ -192,14 +175,154 @@ if (Meteor.isServer) {
             Meteor.call('beanstalk_CommitFeed', function (err, res) {
                 var json = JSON.parse(res);
                 for (var i = 0; i < json.length; i++) {
-                    Commits.insert({
-                        'revision': json[i].revision_cache.revision,
-                        'message': json[i].revision_cache.message,
-                        'author': json[i].revision_cache.author,
-                        'time': json[i].revision_cache.time
+                    var revisionNumber = json[i].revision_cache.revision;
+                    Commits.upsert({
+                        revision: revisionNumber
+                    }, {
+                        $set: {
+                            message: json[i].revision_cache.message,
+                            author: json[i].revision_cache.author,
+                            time: json[i].revision_cache.time
+                        }
                     });
                 }
             });
+        },
+        saveCards: function () {
+            Meteor.call('mingle_getCards', function (err, res) {
+                var json = JSON.parse(res);
+                for (var i = 0; i < json.length; i++) {
+                    var cardNumber = json[i]['Number'];
+                    Cards.upsert({
+                        number: cardNumber
+                    }, {
+                        $set: {
+                            sprint: json[i].Sprint,
+                            status: json[i].Status,
+                            name: json[i].Name,
+                            owner: json[i].Owner
+                        }
+                    }, [{multi: true}]);
+                }
+            });
+        },
+        getStatusCount: function() {
+            var pipeline = [
+                { "$group": {
+                    "_id": {
+                        "sprint": "$sprint",
+                        "status": "$status"
+                    },
+                    "count": { "$sum": 1 }
+                }},
+                { "$group": {
+                    "_id": "$_id.sprint",
+                    "data": { "$push": {
+                        "status": "$_id.status",
+                        "count": "$count"
+                    }}
+                }}
+            ];
+            var res = Cards.aggregate(pipeline);
+            var data = [];
+            for(var i = 0; i <  res[0].data.length; i++) {
+                var d = new Date();
+                data.push({
+                    'status': res[0].data[i].status,
+                    'count': res[0].data[i].count,
+                    'datetime': d
+                });
+            }
+            return data;
+        },
+        getOwnerCount: function() {
+            var currentSprint = Cards.find({}, {sort: {sprint: -1}, limit: 1}).fetch();
+            currentSprint = currentSprint[0].sprint;
+            pipeline = [
+                {
+                    '$match': {
+                        'sprint': currentSprint,
+                        'status': { $in: ['Stage','Ready for Live','Done'] }
+                    }
+                },
+                { "$group": {
+                    "_id": {
+                        "owner": "$owner",
+                        "status": "$status"
+                    },
+                    "count": { "$sum": 1 }
+                }},
+                { "$group": {
+                    "_id": "$_id.owner",
+                    "data": { "$push": {
+                        "name": "$_id.owner",
+                        "count": "$count"
+                    }}
+                }}
+            ];
+            var res = Cards.aggregate(pipeline);
+            var data = [];
+            for(var i = 0; i < res.length; i++) {
+                var d = new Date();
+                data.push({
+                    'owner': res[i].data[0].name,
+                    'count': res[i].data[0].count,
+                    'datetime': d
+                });
+            }
+            return data;
+        },
+        getYTDOwner: function() {
+            pipeline = [
+                {
+                    '$match': {
+                        'status': { $in: ['Stage','Ready for Live','Done'] }
+                    }
+                },
+                { "$group": {
+                    "_id": {
+                        "owner": "$owner",
+                    },
+                    "count": { "$sum": 1 }
+                }}
+            ];
+            var res = Cards.aggregate(pipeline);
+            var data = [];
+            for(var i = 0; i < res.length; i++) {
+                var d = new Date();
+                data.push({
+                    'owner': res[i]['_id'].owner,
+                    'count': res[i].count,
+                    'datetime': d
+                });
+            }
+            return data;
+        },
+        getYTDSprints: function() {
+            pipeline = [
+                {
+                    '$match': {
+                        'status': { $in: ['Stage','Ready for Live','Done'] }
+                    }
+                },
+                { "$group": {
+                    "_id": {
+                        "sprint": "$sprint"
+                    },
+                    "count": { "$sum": 1 }
+                }}
+            ];
+            var res = Cards.aggregate(pipeline);
+            var data = [];
+            for(var i = 0; i < res.length; i++) {
+                var d = new Date();
+                data.push({
+                    'sprint': res[i]['_id'].sprint,
+                    'count': res[i].count,
+                    'datetime': d
+                });
+            }
+            return data;
         },
         zendesk_UnsolvedTickets: function () {
             var zendesk = Async.runSync(function (done) {
@@ -250,6 +373,19 @@ if (Meteor.isServer) {
                 });
             });
             return zendesk.result;
+        },
+        mingle_getCards: function() {
+            var mingle = Async.runSync(function (done) {
+               var query = 'select number, sprint, status, name, owner where type=story and sprint >= number 529';
+                MingleOptions.qs = {
+                    'mql': query
+                };
+                request(MingleOptions, function (error, response, body) {
+                    if (error) throw new Error(error);
+                    done(null, body);
+                });
+            });
+            return mingle.result;
         },
         mingle_SprintStatus: function () {
             var mingle = Async.runSync(function (done) {
