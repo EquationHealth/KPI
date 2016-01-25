@@ -8,9 +8,13 @@
      ng-controller="EquationKPICtrl">
 
     <div class="row">
-        <div class="col-md-2 simple" ng-repeat="stat in ticketStats">
-            <h1>{{stat.value}}</h1>
-            <p>{{stat.name}}</p>
+        <div class="col-md-6 simple">
+            <h1>13%</h1>
+            <p>Current Sprint Complete</p>
+        </div>
+        <div class="col-md-6 simple">
+            <h1>48%</h1>
+            <p>Active Release Map Complete</p>
         </div>
     </div>
 
@@ -97,7 +101,7 @@
     <div class="row">
         <div class="col-md-12">
             <div class="panel panel-default">
-                <div class="panel-heading">Cards</div>
+                <div class="panel-heading">Recently Active Cards</div>
                 <table class="table table-striped">
                     <thead>
                     <th>Number</th>
@@ -121,9 +125,16 @@
     </div>
 
     <div class="row">
+        <div class="col-md-2 simple" ng-repeat="stat in ticketStats">
+            <h1>{{stat.value}}</h1>
+            <p>{{stat.name}}</p>
+        </div>
+    </div>
+
+    <div class="row">
         <div class="col-md-12">
             <div class="panel panel-default">
-                <div class="panel-heading">Commit Feed</div>
+                <div class="panel-heading">Recent Commits</div>
                 <table class="table table-striped">
                     <thead>
                     <th>Commit</th>

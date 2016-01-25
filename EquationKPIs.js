@@ -31,7 +31,7 @@ if (Meteor.isClient) {
                     return Commits.find({}, {sort: {time: -1}, limit: 10}).fetch();
                 },
                 cards: () => {
-                    return Cards.find({}, {sort: {sprint: -1, number: -1}, limit: 25}).fetch();
+                    return Cards.find({}, {sort: {sprint: -1, number: -1}, limit: 14}).fetch();
                 }
             });
 
@@ -155,7 +155,7 @@ if (Meteor.isClient) {
                     };
                     $scope.apply();
                 });
-            }, 5000);
+            }, 10000);
         }
     ]);
 }
@@ -180,7 +180,7 @@ if (Meteor.isServer) {
         return Commits.find({}, {sort: {time: -1}, limit: 10});
     });
     Meteor.publish('cards', function publishFunction() {
-        return Cards.find({}, {limit: 25});
+        return Cards.find({}, {limit: 50});
     });
 
 
@@ -197,8 +197,12 @@ if (Meteor.isServer) {
         }
     });
 
+
     Meteor.setInterval(function(){
         Meteor.call('saveTickets');
+    }, 3600000);
+
+    Meteor.setInterval(function(){
         Meteor.call('saveCommits');
         Meteor.call('saveCards');
     }, 10000);
