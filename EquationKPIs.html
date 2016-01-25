@@ -20,6 +20,34 @@
             </div>
         </div>
 
+        <div class="row">
+            <div class="col-md-12">
+                <div class="panel panel-default">
+                    <div class="panel-heading">Recently Active Tickets</div>
+                    <table class="table table-striped">
+                        <thead>
+                        <th>Subject</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Priority</th>
+                        <th>Created</th>
+                        <th>Updated</th>
+                        </thead>
+                        <tbody>
+                        <tr ng-repeat="ticket in openTickets">
+                            <td>{{ticket.name}}</td>
+                            <td>{{ticket.status}}</td>
+                            <td>{{ticket.type}}</td>
+                            <td>{{ticket.priority}}</td>
+                            <td>{{ticket.created}}</td>
+                            <td>{{ticket.updated}}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <div class="container" id="mingle">
