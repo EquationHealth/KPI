@@ -2,6 +2,17 @@
 .row {
     margin-top: 30px;
 }
+a {
+    color: #695B7A;
+    text-decoration: underline;
+}
+a:hover {
+    color: #04667a;
+}
+small {
+    color: #999;
+    font-style: italic;
+}
 
 h1.section {
     color: #999;

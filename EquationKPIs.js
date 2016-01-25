@@ -45,6 +45,15 @@ if (Meteor.isClient) {
              */
             Meteor.call('getStatusCount', function (err, res) {
                 $scope.statusCount = res;
+                var c = 0;
+                var t = 0;
+                for (var i = 0; i < res.length; i++) {
+                    if(res[i].status == 'Done' || res[i].status == 'Ready for Live' || res[i].status == 'Stage') {
+                        c += res[i].count;
+                    }
+                    t += res[i].count;
+                }
+                $scope.sprintComplete = (c / t * 100).toFixed(0);
                 $scope.$apply();
             });
             Meteor.call('getOwnerCount', function (err, res) {
