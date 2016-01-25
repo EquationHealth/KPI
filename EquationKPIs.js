@@ -97,7 +97,7 @@ if (Meteor.isServer) {
 
     //Meteor.setInterval(function(){
     //    Meteor.call('saveCards');
-    //}, 5000);
+    //}, 3600000);
 
     /**
      * Zendesk
