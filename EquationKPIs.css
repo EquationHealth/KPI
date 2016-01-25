@@ -39,3 +39,7 @@
 .panel .table tbody tr td:nth-child(1) {
     text-align:left;
 }
+.panel-default > .panel-footer {
+    padding: 2px;
+    background-color: #fff;
+}

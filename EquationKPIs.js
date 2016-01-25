@@ -8,7 +8,7 @@ Commits = new Mongo.Collection('commits');
 if (Meteor.isClient) {
 
     // This code only runs on the client
-    angular.module('equationKPIs', ['angular-meteor']);
+    angular.module('equationKPIs', ['angular-meteor','googlechart']);
 
     angular.module('equationKPIs').controller('EquationKPICtrl', ['$scope',
         function ($scope) {
@@ -28,10 +28,10 @@ if (Meteor.isClient) {
                     return Tickets.find({}, {sort: {datetime: -1}, limit: 5}).fetch();
                 },
                 commitFeed: () => {
-                    return Commits.find({}, {sort: {time: -1}, limit: 25}).fetch();
+                    return Commits.find({}, {sort: {time: -1}, limit: 10}).fetch();
                 },
                 cards: () => {
-                    return Cards.find({}, {sort: {number: -1}, limit: 25}).fetch();
+                    return Cards.find({}, {sort: {sprint: -1, number: -1}, limit: 25}).fetch();
                 }
             });
 
@@ -48,12 +48,114 @@ if (Meteor.isClient) {
             });
             Meteor.call('getYTDSprints', function (err, res) {
                 $scope.sprintsYTD = res;
+                $scope.chartYTDSprints = {};
+                $scope.chartYTDSprints.type = "ColumnChart";
+                var chartCols = [
+                    {label: 'Sprint', type: 'string'},
+                    {label: 'Cards', type: 'number'}
+                ];
+                var chartData = [];
+                for (var i = 0; i < res.length; i++) {
+                    chartData.push({
+                        c: [
+                            {v: res[i].sprint},
+                            {v: res[i].count}
+                        ]
+                    });
+                }
+                $scope.chartYTDSprints.data = {'cols': chartCols, 'rows': chartData};
+                $scope.chartYTDSprints.options = {
+                    //'title': ''
+                    colors: ['#04667a'],
+                    legend: 'none'
+                };
                 $scope.apply();
             });
             Meteor.call('getYTDOwner', function (err, res) {
                 $scope.ownerYTD = res;
+                $scope.chartYTDOwners = {};
+                $scope.chartYTDOwners.type = "ColumnChart";
+                var chartCols = [
+                    {label: 'Owner', type: 'string'},
+                    {label: 'Cards', type: 'number'}
+                ];
+                var chartData = [];
+                for (var i = 0; i < res.length; i++) {
+                    chartData.push({
+                        c: [
+                            {v: res[i].owner},
+                            {v: res[i].count}
+                        ]
+                    });
+                }
+                $scope.chartYTDOwners.data = {'cols': chartCols, 'rows': chartData};
+                $scope.chartYTDOwners.options = {
+                    //'title': ''
+                    colors: ['#04667a'],
+                    legend: 'none'
+                };
                 $scope.apply();
             });
+            Meteor.setInterval(function () {
+                Meteor.call('getStatusCount', function (err, res) {
+                    $scope.statusCount = res;
+                    $scope.apply();
+                });
+                Meteor.call('getOwnerCount', function (err, res) {
+                    $scope.ownerCount = res;
+                    $scope.apply();
+                });
+                Meteor.call('getYTDSprints', function (err, res) {
+                    $scope.sprintsYTD = res;
+                    $scope.chartYTDSprints = {};
+                    $scope.chartYTDSprints.type = "ColumnChart";
+                    var chartCols = [
+                        {label: 'Sprint', type: 'string'},
+                        {label: 'Cards', type: 'number'}
+                    ];
+                    var chartData = [];
+                    for (var i = 0; i < res.length; i++) {
+                        chartData.push({
+                            c: [
+                                {v: res[i].sprint},
+                                {v: res[i].count}
+                            ]
+                        });
+                    }
+                    $scope.chartYTDSprints.data = {'cols': chartCols, 'rows': chartData};
+                    $scope.chartYTDSprints.options = {
+                        //'title': ''
+                        colors: ['#04667a'],
+                        legend: 'none'
+                    };
+                    $scope.apply();
+                });
+                Meteor.call('getYTDOwner', function (err, res) {
+                    $scope.ownerYTD = res;
+                    $scope.chartYTDOwners = {};
+                    $scope.chartYTDOwners.type = "ColumnChart";
+                    var chartCols = [
+                        {label: 'Owner', type: 'string'},
+                        {label: 'Cards', type: 'number'}
+                    ];
+                    var chartData = [];
+                    for (var i = 0; i < res.length; i++) {
+                        chartData.push({
+                            c: [
+                                {v: res[i].owner},
+                                {v: res[i].count}
+                            ]
+                        });
+                    }
+                    $scope.chartYTDOwners.data = {'cols': chartCols, 'rows': chartData};
+                    $scope.chartYTDOwners.options = {
+                        //'title': ''
+                        colors: ['#04667a'],
+                        legend: 'none'
+                    };
+                    $scope.apply();
+                });
+            }, 5000);
         }
     ]);
 }
@@ -75,10 +177,10 @@ if (Meteor.isServer) {
         return Tickets.find({}, {sort: {datetime: -1}, limit: 5});
     });
     Meteor.publish('recent-commits', function publishFunction() {
-        return Commits.find({}, {sort: {time: -1}, limit: 25});
+        return Commits.find({}, {sort: {time: -1}, limit: 10});
     });
     Meteor.publish('cards', function publishFunction() {
-        return Cards.find({}, {sort: {number: -1}, limit: 25});
+        return Cards.find({}, {limit: 25});
     });
 
 
@@ -95,9 +197,11 @@ if (Meteor.isServer) {
         }
     });
 
-    //Meteor.setInterval(function(){
-    //    Meteor.call('saveCards');
-    //}, 3600000);
+    Meteor.setInterval(function(){
+        Meteor.call('saveTickets');
+        Meteor.call('saveCommits');
+        Meteor.call('saveCards');
+    }, 10000);
 
     /**
      * Zendesk
