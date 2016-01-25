@@ -3,156 +3,184 @@
 </head>
 
 <body>
-<div class="container"
-     ng-app="equationKPIs"
-     ng-controller="EquationKPICtrl">
+<div ng-app="equationKPIs" ng-controller="EquationKPICtrl">
 
-    <div class="row">
-        <div class="col-md-6 simple">
-            <h1>13%</h1>
-            <p>Current Sprint Complete</p>
+    <div class="container" id="zendesk">
+
+        <div class="row">
+            <div class="col-md-12">
+                <h1 class="section">Support Tickets</h1>
+            </div>
         </div>
-        <div class="col-md-6 simple">
-            <h1>48%</h1>
-            <p>Active Release Map Complete</p>
+
+        <div class="row">
+            <div class="col-md-2 simple" ng-repeat="stat in ticketStats">
+                <h1>{{stat.value}}</h1>
+                <p>{{stat.name}}</p>
+            </div>
         </div>
+
     </div>
 
-    <div class="row">
-        <div class="col-md-3">
-            <div class="panel panel-default">
-                <div class="panel-heading">Current Sprint</div>
-                <table class="table table-striped">
-                    <thead>
-                    <th>Status</th>
-                    <th>Cards</th>
-                    </thead>
-                    <tbody>
-                    <tr ng-repeat="sprint in statusCount">
-                        <td>{{sprint.status}}</td>
-                        <td>{{sprint.count}}</td>
-                    </tr>
-                    </tbody>
-                </table>
+    <div class="container" id="mingle">
+
+        <div class="row">
+            <div class="col-md-12">
+                <h1 class="section">Sprints &amp; Release Maps</h1>
             </div>
         </div>
 
-        <div class="col-md-3">
-            <div class="panel panel-default">
-                <div class="panel-heading">Current Sprint by Owner</div>
-                <table class="table table-striped">
-                    <thead>
-                    <th>Owner</th>
-                    <th>Cards Complete</th>
-                    </thead>
-                    <tbody>
-                    <tr ng-repeat="owner in ownerCount">
-                        <td>{{owner.owner}}</td>
-                        <td>{{owner.count}}</td>
-                    </tr>
-                    </tbody>
-                </table>
+        <div class="row">
+            <div class="col-md-2 simple">
+                <h1>13%</h1>
+                <p>Current Sprint Complete</p>
+            </div>
+            <div class="col-md-2 simple">
+                <h1>48%</h1>
+                <p>Active Release Map Complete</p>
             </div>
         </div>
 
-        <div class="col-md-3">
-            <div class="panel panel-default">
-                <div class="panel-heading">YTD Sprints</div>
-                <table class="table table-striped">
-                    <thead>
-                    <th>Sprint</th>
-                    <th>Cards Complete</th>
-                    </thead>
-                    <tbody>
-                    <tr ng-repeat="sprint in sprintsYTD">
-                        <td>{{sprint.sprint}}</td>
-                        <td>{{sprint.count}}</td>
-                    </tr>
-                    </tbody>
-                </table>
-                <div class="panel-footer">
-                    <div google-chart chart="chartYTDSprints" style="height:100px; width:100%;"></div>
+        <div class="row">
+            <div class="col-md-3">
+                <div class="panel panel-default">
+                    <div class="panel-heading">Current Sprint</div>
+                    <table class="table table-striped">
+                        <thead>
+                        <th>Status</th>
+                        <th>Cards</th>
+                        </thead>
+                        <tbody>
+                        <tr ng-repeat="sprint in statusCount">
+                            <td>{{sprint.status}}</td>
+                            <td>{{sprint.count}}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="panel panel-default">
+                    <div class="panel-heading">Current Sprint by Owner</div>
+                    <table class="table table-striped">
+                        <thead>
+                        <th>Owner</th>
+                        <th>Cards Complete</th>
+                        </thead>
+                        <tbody>
+                        <tr ng-repeat="owner in ownerCount">
+                            <td>{{owner.owner}}</td>
+                            <td>{{owner.count}}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="panel panel-default">
+                    <div class="panel-heading">YTD Sprints</div>
+                    <table class="table table-striped">
+                        <thead>
+                        <th>Sprint</th>
+                        <th>Cards Complete</th>
+                        </thead>
+                        <tbody>
+                        <tr ng-repeat="sprint in sprintsYTD">
+                            <td>{{sprint.sprint}}</td>
+                            <td>{{sprint.count}}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <div class="panel-footer">
+                        <div google-chart chart="chartYTDSprints" style="height:100px; width:100%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="panel panel-default">
+                    <div class="panel-heading">YTD by Owner</div>
+                    <table class="table table-striped">
+                        <thead>
+                        <th>Owner</th>
+                        <th>Cards Complete</th>
+                        </thead>
+                        <tbody>
+                        <tr ng-repeat="owner in ownerYTD">
+                            <td>{{owner.owner}}</td>
+                            <td>{{owner.count}}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <div class="panel-footer">
+                        <div google-chart chart="chartYTDOwners" style="height:100px; width:100%;"></div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-3">
-            <div class="panel panel-default">
-                <div class="panel-heading">YTD by Owner</div>
-                <table class="table table-striped">
-                    <thead>
-                    <th>Owner</th>
-                    <th>Cards Complete</th>
-                    </thead>
-                    <tbody>
-                    <tr ng-repeat="owner in ownerYTD">
-                        <td>{{owner.owner}}</td>
-                        <td>{{owner.count}}</td>
-                    </tr>
-                    </tbody>
-                </table>
-                <div class="panel-footer">
-                    <div google-chart chart="chartYTDOwners" style="height:100px; width:100%;"></div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="panel panel-default">
+                    <div class="panel-heading">Recently Active Cards</div>
+                    <table class="table table-striped">
+                        <thead>
+                        <th>Number</th>
+                        <th>Sprint</th>
+                        <th>Status</th>
+                        <th>Name</th>
+                        <th>Owner</th>
+                        </thead>
+                        <tbody>
+                        <tr ng-repeat="card in cards">
+                            <td>{{card.number}}</td>
+                            <td>{{card.sprint}}</td>
+                            <td>{{card.status}}</td>
+                            <td>{{card.name}}</td>
+                            <td>{{card.owner}}</td>
+                        </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
+
     </div>
 
-    <div class="row">
-        <div class="col-md-12">
-            <div class="panel panel-default">
-                <div class="panel-heading">Recently Active Cards</div>
-                <table class="table table-striped">
-                    <thead>
-                    <th>Number</th>
-                    <th>Sprint</th>
-                    <th>Status</th>
-                    <th>Name</th>
-                    <th>Owner</th>
-                    </thead>
-                    <tbody>
-                    <tr ng-repeat="card in cards">
-                        <td>{{card.number}}</td>
-                        <td>{{card.sprint}}</td>
-                        <td>{{card.status}}</td>
-                        <td>{{card.name}}</td>
-                        <td>{{card.owner}}</td>
-                    </tr>
-                    </tbody>
-                </table>
+    <div class="container" id="beanstalk">
+
+        <div class="row">
+            <div class="col-md-12">
+                <h1 class="section">Deployments &amp; Commits</h1>
             </div>
         </div>
-    </div>
 
-    <div class="row">
-        <div class="col-md-2 simple" ng-repeat="stat in ticketStats">
-            <h1>{{stat.value}}</h1>
-            <p>{{stat.name}}</p>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-md-12">
-            <div class="panel panel-default">
-                <div class="panel-heading">Recent Commits</div>
-                <table class="table table-striped">
-                    <thead>
-                    <th>Commit</th>
-                    <th>Time</th>
-                    <th>Author</th>
-                    <th>Message</th>
-                    </thead>
-                    <tbody>
-                    <tr ng-repeat="commit in commitFeed">
-                        <td>{{commit.revision}}</td>
-                        <td>{{commit.time}}</td>
-                        <td>{{commit.author}}</td>
-                        <td>{{commit.message}}</td>
-                    </tr>
-                    </tbody>
-                </table>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="panel panel-default">
+                    <div class="panel-heading">Recent Commits</div>
+                    <table class="table table-striped">
+                        <thead>
+                        <th>Commit</th>
+                        <th>Time</th>
+                        <th>Author</th>
+                        <th>Message</th>
+                        </thead>
+                        <tbody>
+                        <tr ng-repeat="commit in commitFeed">
+                            <td>{{commit.revision}}</td>
+                            <td>{{commit.time}}</td>
+                            <td>{{commit.author}}</td>
+                            <td>{{commit.message}}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
+
     </div>
 
 </div>

@@ -40,11 +40,11 @@ if (Meteor.isClient) {
              */
             Meteor.call('getStatusCount', function (err, res) {
                 $scope.statusCount = res;
-                $scope.apply();
+                $scope.$apply();
             });
             Meteor.call('getOwnerCount', function (err, res) {
                 $scope.ownerCount = res;
-                $scope.apply();
+                $scope.$apply();
             });
             Meteor.call('getYTDSprints', function (err, res) {
                 $scope.sprintsYTD = res;
@@ -69,7 +69,7 @@ if (Meteor.isClient) {
                     colors: ['#04667a'],
                     legend: 'none'
                 };
-                $scope.apply();
+                $scope.$apply();
             });
             Meteor.call('getYTDOwner', function (err, res) {
                 $scope.ownerYTD = res;
@@ -94,16 +94,16 @@ if (Meteor.isClient) {
                     colors: ['#04667a'],
                     legend: 'none'
                 };
-                $scope.apply();
+                $scope.$apply();
             });
             Meteor.setInterval(function () {
                 Meteor.call('getStatusCount', function (err, res) {
                     $scope.statusCount = res;
-                    $scope.apply();
+                    $scope.$apply();
                 });
                 Meteor.call('getOwnerCount', function (err, res) {
                     $scope.ownerCount = res;
-                    $scope.apply();
+                    $scope.$apply();
                 });
                 Meteor.call('getYTDSprints', function (err, res) {
                     $scope.sprintsYTD = res;
@@ -128,7 +128,7 @@ if (Meteor.isClient) {
                         colors: ['#04667a'],
                         legend: 'none'
                     };
-                    $scope.apply();
+                    $scope.$apply();
                 });
                 Meteor.call('getYTDOwner', function (err, res) {
                     $scope.ownerYTD = res;
@@ -153,7 +153,7 @@ if (Meteor.isClient) {
                         colors: ['#04667a'],
                         legend: 'none'
                     };
-                    $scope.apply();
+                    $scope.$apply();
                 });
             }, 10000);
         }

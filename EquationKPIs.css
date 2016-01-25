@@ -3,6 +3,24 @@
     margin-top: 30px;
 }
 
+h1.section {
+    color: #999;
+    font-weight: normal;
+    font-size: 40px;
+    letter-spacing: -1px;
+}
+
+#mingle {
+    border-bottom: 1px solid #eee;
+    padding-bottom: 30px;
+}
+#zendesk {
+    border-bottom: 1px solid #eee;
+    padding-bottom: 30px;
+}
+#beanstalk {
+}
+
 /* Metrics */
 .simple {
     text-align:center;
