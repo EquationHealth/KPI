@@ -15,6 +15,11 @@ if (Meteor.isClient) {
         function ($scope) {
 
             /**
+             * Meta
+             */
+            var monthNameShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+            /**
              * Subscribe
              */
             Meteor.subscribe('recent-ticket-stats');
@@ -43,6 +48,47 @@ if (Meteor.isClient) {
             /**
              * Scope
              */
+
+            Meteor.call('getCommitTrend', function (err, res) {
+                var recentCommits = res;
+                $scope.chartCommitTrend = {};
+                $scope.chartCommitTrend.type = "LineChart";
+                var chartCols = [
+                    {label: 'Day', type: 'string'},
+                    {label: 'Commits', type: 'number'}
+                ];
+                var chartData = [];
+                for (var i = 0; i < recentCommits.length; i++) {
+                    var m = new Date().getMonth();
+                    var d = monthNameShort[m] + ' ' + recentCommits[i].day;
+                    chartData.push({
+                        c: [
+                            {v: d},
+                            {v: recentCommits[i].count}
+                        ]
+                    });
+                }
+                $scope.chartCommitTrend.data = {'cols': chartCols, 'rows': chartData};
+                $scope.chartCommitTrend.options = {
+                    colors: ['#04667a'],
+                    legend: 'none',
+                    vAxis: {
+                        baselineColor: '#fff',
+                        gridlineColor: '#fff',
+                        textColor: '#777',
+                        textStyle: {
+                            fontSize: 11
+                        }
+                    },
+                    hAxis: {
+                        textColor: '#777',
+                        textStyle: {
+                            fontSize: 11
+                        }
+                    }
+                };
+                $scope.$apply()
+            });
             Meteor.call('getStatusCount', function (err, res) {
                 $scope.statusCount = res;
                 var c = 0;
@@ -111,6 +157,46 @@ if (Meteor.isClient) {
                 $scope.$apply();
             });
             Meteor.setInterval(function () {
+                Meteor.call('getCommitTrend', function (err, res) {
+                    var recentCommits = res;
+                    $scope.chartCommitTrend = {};
+                    $scope.chartCommitTrend.type = "LineChart";
+                    var chartCols = [
+                        {label: 'Day', type: 'string'},
+                        {label: 'Commits', type: 'number'}
+                    ];
+                    var chartData = [];
+                    for (var i = 0; i < recentCommits.length; i++) {
+                        var m = new Date().getMonth();
+                        var d = monthNameShort[m] + ' ' + recentCommits[i].day;
+                        chartData.push({
+                            c: [
+                                {v: d},
+                                {v: recentCommits[i].count}
+                            ]
+                        });
+                    }
+                    $scope.chartCommitTrend.data = {'cols': chartCols, 'rows': chartData};
+                    $scope.chartCommitTrend.options = {
+                        colors: ['#04667a'],
+                        legend: 'none',
+                        vAxis: {
+                            baselineColor: '#fff',
+                            gridlineColor: '#fff',
+                            textColor: '#777',
+                            textStyle: {
+                                fontSize: 11
+                            }
+                        },
+                        hAxis: {
+                            textColor: '#777',
+                            textStyle: {
+                                fontSize: 11
+                            }
+                        }
+                    };
+                    $scope.$apply()
+                });
                 Meteor.call('getStatusCount', function (err, res) {
                     $scope.statusCount = res;
                     $scope.$apply();
@@ -206,8 +292,6 @@ if (Meteor.isServer) {
      */
     Meteor.startup(function () {
         if (Meteor.isServer) {
-            Commits.remove({});
-            Cards.remove({});
             Meteor.call('saveTickets');
             Meteor.call('saveCommits');
             Meteor.call('saveCards');
@@ -328,7 +412,7 @@ if (Meteor.isServer) {
                         $set: {
                             message: json[i].revision_cache.message,
                             author: json[i].revision_cache.author,
-                            time: json[i].revision_cache.time
+                            time: new Date(json[i].revision_cache.time)
                         }
                     });
                 }
@@ -354,20 +438,27 @@ if (Meteor.isServer) {
         },
         getStatusCount: function() {
             var pipeline = [
-                { "$group": {
-                    "_id": {
-                        "sprint": "$sprint",
-                        "status": "$status"
-                    },
-                    "count": { "$sum": 1 }
-                }},
-                { "$group": {
-                    "_id": "$_id.sprint",
-                    "data": { "$push": {
-                        "status": "$_id.status",
-                        "count": "$count"
-                    }}
-                }}
+                {$sort: {sprint: -1}},
+                {
+                    "$group": {
+                        "_id": {
+                            "sprint": "$sprint",
+                            "status": "$status"
+                        },
+                        "count": {"$sum": 1}
+                    }
+                },
+                {
+                    "$group": {
+                        "_id": "$_id.sprint",
+                        "data": {
+                            "$push": {
+                                "status": "$_id.status",
+                                "count": "$count"
+                            }
+                        }
+                    }
+                }
             ];
             var res = Cards.aggregate(pipeline);
             var data = [];
@@ -446,6 +537,7 @@ if (Meteor.isServer) {
         },
         getYTDSprints: function() {
             pipeline = [
+                {$sort: {sprint: -1}},
                 {
                     '$match': {
                         'status': { $in: ['Stage','Ready for Live','Done'] }
@@ -466,6 +558,29 @@ if (Meteor.isServer) {
                     'sprint': res[i]['_id'].sprint,
                     'count': res[i].count,
                     'datetime': d
+                });
+            }
+            return data;
+        },
+        getCommitTrend: function() {
+            pipeline = [
+                {$project : {
+                    day : {$dayOfYear : "$time"}
+                }},
+                {$sort: {day: -1}},
+                { "$group": {
+                    "_id": {
+                        day: "$day"
+                    },
+                    "count": { "$sum": 1 }
+                }}
+            ];
+            var res = Commits.aggregate(pipeline);
+            var data = [];
+            for(var i = 0; i < res.length; i++) {
+                data.push({
+                    'day': res[i]['_id'].day,
+                    'count': res[i].count
                 });
             }
             return data;
