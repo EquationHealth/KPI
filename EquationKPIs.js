@@ -299,7 +299,6 @@ if (Meteor.isServer) {
         }
     });
 
-
     Meteor.setInterval(function(){
         Meteor.call('saveTickets');
         Meteor.call('saveOpenTickets');
