@@ -15,16 +15,54 @@
         </div>
 
         <div class="row">
-            <div class="col-md-2 simple" ng-repeat="stat in ticketStats">
-                <h1>{{stat.value}}</h1>
-                <p>{{stat.name}}</p>
+            <div class="col-md-3 simple">
+                <h1>{{stats_newTickets7Days}}</h1>
+                <p>New Tickets: Last 7 Days</p>
+            </div>
+            <div class="col-md-3 simple">
+                <h1>{{stats_solvedTickets7Days}}</h1>
+                <p>Solved Tickets: Last 7 Days</p>
+            </div>
+            <div class="col-md-3 simple">
+                <h1>{{stats_newTickets30Days}}</h1>
+                <p>New Tickets: Last 30 Days</p>
+            </div>
+            <div class="col-md-3 simple">
+                <h1>{{stats_solvedTickets30Days}}</h1>
+                <p>Solved Tickets: Last 30 Days</p>
+            </div>
+        </div>
+
+        <div class="row" style="border-top: 1px solid #ddd;">
+            <div class="col-md-4 simple" style="border-right: 1px solid #ddd;">
+                <h1>{{stats_unsolvedTickets}}</h1>
+                <p>Total Unsolved Tickets</p>
+            </div>
+            <div class="col-md-2 simple">
+                <h1>{{stats_openTickets}}</h1>
+                <p>Open Tickets</p>
+            </div>
+            <div class="col-md-2 simple">
+                <h1>{{stats_newTickets}}</h1>
+                <p>New Tickets</p>
+            </div>
+            <div class="col-md-2 simple">
+                <h1>{{stats_pendingTickets}}</h1>
+                <p>Pending Tickets</p>
+            </div>
+            <div class="col-md-2 simple">
+                <h1>{{stats_onholdTickets}}</h1>
+                <p>On-hold Tickets</p>
             </div>
         </div>
 
         <div class="row">
             <div class="col-md-12">
                 <div class="panel panel-default">
-                    <div class="panel-heading">Recently Active Tickets</div>
+                    <div class="panel-heading">Ticket Activity</div>
+                    <!--<div class="panel-body">-->
+                         <!--<div google-chart chart="chartTicketTrend" style="height:200px; width:100%;"></div>-->
+                    <!--</div>-->
                     <table class="table table-striped">
                         <thead>
                         <th>Subject</th>
@@ -35,7 +73,7 @@
                         <th>Updated</th>
                         </thead>
                         <tbody>
-                        <tr ng-repeat="ticket in openTickets">
+                        <tr ng-repeat="ticket in ticketFeed">
                             <td>{{ticket.name}}</td>
                             <td>{{ticket.status}}</td>
                             <td>{{ticket.type}}</td>

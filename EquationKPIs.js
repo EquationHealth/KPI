@@ -1,5 +1,5 @@
-Tickets = new Mongo.Collection('tickets');
-openTickets = new Mongo.Collection('open-tickets');
+ticketStats = new Mongo.Collection('ticketStats');
+ticketFeed = new Mongo.Collection('ticketFeed');
 Cards = new Mongo.Collection('cards');
 Commits = new Mongo.Collection('commits');
 
@@ -17,31 +17,26 @@ if (Meteor.isClient) {
             /**
              * Meta
              */
-            var monthNameShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
             /**
              * Subscribe
              */
-            Meteor.subscribe('recent-ticket-stats');
             Meteor.subscribe('recent-commits');
             Meteor.subscribe('cards');
-            Meteor.subscribe('open-tickets');
+            Meteor.subscribe('ticket-feed');
 
             /**
              * Helpers
              */
             $scope.helpers({
-                ticketStats: () => {
-                    return Tickets.find({}, {sort: {datetime: -1}, limit: 5}).fetch();
-                },
                 commitFeed: () => {
                     return Commits.find({}, {sort: {time: -1}, limit: 10}).fetch();
                 },
                 cards: () => {
                     return Cards.find({}, {sort: {sprint: -1, number: -1}, limit: 14}).fetch();
                 },
-                openTickets: () => {
-                    return openTickets.find({}, {sort: {updated: -1}, limit: 10}).fetch();
+                ticketFeed: () => {
+                    return ticketFeed.find({}, {sort: {updated: -1}, limit: 10}).fetch();
                 }
             });
 
@@ -49,6 +44,62 @@ if (Meteor.isClient) {
              * Scope
              */
 
+            Meteor.call('getLatestTicketStats', function (err, res) {
+                console.log(res);
+                for (var i = 0; i < res.length; i++) {
+                    $scope.stats_unsolvedTickets = res[i].unsolvedTickets;
+                    $scope.stats_openTickets = res[i].openTickets;
+                    $scope.stats_newTickets = res[i].newTickets;
+                    $scope.stats_pendingTickets = res[i].pendingTickets;
+                    $scope.stats_onholdTickets = res[i].onholdTickets;
+                    $scope.stats_solvedTickets7Days = res[i].solvedTickets7Days;
+                    $scope.stats_solvedTickets30Days = res[i].solvedTickets30Days;
+                    $scope.stats_newTickets30Days = res[i].newTickets30Days;
+                    $scope.stats_newTickets7Days = res[i].newTickets7Days;
+                    $scope.$apply();
+                }
+            });
+
+            //Meteor.call('getTicketTrend', function (err, res) {
+            //    var recentTickets = res;
+            //    $scope.chartTicketTrend = {};
+            //    $scope.chartTicketTrend.type = "ColumnChart";
+            //    var chartCols = [
+            //        {label: 'Day', type: 'string'},
+            //        {label: 'Tickets', type: 'number'}
+            //    ];
+            //    var chartData = [];
+            //    for (var i = 0; i < recentTickets.length; i++) {
+            //        var m = new Date().getMonth();
+            //        var d = monthNameShort[m] + ' ' + recentTickets[i].day;
+            //        chartData.push({
+            //            c: [
+            //                {v: d},
+            //                {v: recentTickets[i].count}
+            //            ]
+            //        });
+            //    }
+            //    $scope.chartTicketTrend.data = {'cols': chartCols, 'rows': chartData};
+            //    $scope.chartTicketTrend.options = {
+            //        colors: ['#04667a'],
+            //        legend: 'none',
+            //        vAxis: {
+            //            baselineColor: '#fff',
+            //            gridlineColor: '#fff',
+            //            textColor: '#777',
+            //            textStyle: {
+            //                fontSize: 11
+            //            }
+            //        },
+            //        hAxis: {
+            //            textColor: '#777',
+            //            textStyle: {
+            //                fontSize: 11
+            //            }
+            //        }
+            //    };
+            //    $scope.$apply()
+            //});
             Meteor.call('getCommitTrend', function (err, res) {
                 var recentCommits = res;
                 $scope.chartCommitTrend = {};
@@ -58,9 +109,22 @@ if (Meteor.isClient) {
                     {label: 'Commits', type: 'number'}
                 ];
                 var chartData = [];
+                var getDateFromDayNum = function(dayNum, year){
+                    var monthNameShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                    var date = new Date();
+                    if(year){
+                        date.setFullYear(year);
+                    }
+                    date.setMonth(0);
+                    date.setDate(0);
+                    var timeOfFirst = date.getTime();
+                    var dayMilli = 1000 * 60 * 60 * 24;
+                    var dayNumMilli = dayNum * dayMilli;
+                    date.setTime(timeOfFirst + dayNumMilli);
+                    return monthNameShort[date.getMonth()] + ' ' + date.getDate();
+                };
                 for (var i = 0; i < recentCommits.length; i++) {
-                    var m = new Date().getMonth();
-                    var d = monthNameShort[m] + ' ' + recentCommits[i].day;
+                    var d = getDateFromDayNum(recentCommits[i].day);
                     chartData.push({
                         c: [
                             {v: d},
@@ -156,6 +220,10 @@ if (Meteor.isClient) {
                 };
                 $scope.$apply();
             });
+
+            /**
+             * Intervals
+             */
             Meteor.setInterval(function () {
                 Meteor.call('getCommitTrend', function (err, res) {
                     var recentCommits = res;
@@ -166,9 +234,22 @@ if (Meteor.isClient) {
                         {label: 'Commits', type: 'number'}
                     ];
                     var chartData = [];
+                    var getDateFromDayNum = function(dayNum, year){
+                        var monthNameShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                        var date = new Date();
+                        if(year){
+                            date.setFullYear(year);
+                        }
+                        date.setMonth(0);
+                        date.setDate(0);
+                        var timeOfFirst = date.getTime();
+                        var dayMilli = 1000 * 60 * 60 * 24;
+                        var dayNumMilli = dayNum * dayMilli;
+                        date.setTime(timeOfFirst + dayNumMilli);
+                        return monthNameShort[date.getMonth()] + ' ' + date.getDate();
+                    };
                     for (var i = 0; i < recentCommits.length; i++) {
-                        var m = new Date().getMonth();
-                        var d = monthNameShort[m] + ' ' + recentCommits[i].day;
+                        var d = getDateFromDayNum(recentCommits[i].day);
                         chartData.push({
                             c: [
                                 {v: d},
@@ -273,17 +354,14 @@ if (Meteor.isServer) {
     /**
      * Publish
      */
-    Meteor.publish('recent-ticket-stats', function publishFunction() {
-        return Tickets.find({}, {sort: {datetime: -1}, limit: 5});
-    });
     Meteor.publish('recent-commits', function publishFunction() {
         return Commits.find({}, {sort: {time: -1}, limit: 10});
     });
     Meteor.publish('cards', function publishFunction() {
         return Cards.find({}, {limit: 50});
     });
-    Meteor.publish('open-tickets', function publishFunction() {
-        return openTickets.find({}, {sort: {updated: -1}, limit: 10});
+    Meteor.publish('ticket-feed', function publishFunction() {
+        return ticketFeed.find({}, {sort: {updated: -1}, limit: 10});
     });
 
 
@@ -292,16 +370,16 @@ if (Meteor.isServer) {
      */
     Meteor.startup(function () {
         if (Meteor.isServer) {
-            Meteor.call('saveTickets');
+            Meteor.call('saveTicketStats');
+            Meteor.call('saveTicketFeed');
             Meteor.call('saveCommits');
             Meteor.call('saveCards');
-            Meteor.call('saveOpenTickets');
         }
     });
 
     Meteor.setInterval(function(){
-        Meteor.call('saveTickets');
-        Meteor.call('saveOpenTickets');
+        Meteor.call('saveTicketStats');
+        Meteor.call('saveTicketFeed');
     }, 3600000);
 
     Meteor.setInterval(function(){
@@ -364,11 +442,11 @@ if (Meteor.isServer) {
      * Methods
      */
     Meteor.methods({
-        saveOpenTickets: function () {
-            Meteor.call('zendesk_OpenTickets', function (err, res) {
+        saveTicketFeed: function () {
+            Meteor.call('getTicketFeed', function (err, res) {
                 var json = JSON.parse(res);
                 for (var i = 0; i < json.tickets.length; i++) {
-                    openTickets.upsert({
+                    ticketFeed.upsert({
                         id: json.tickets[i].id
                     }, {
                         $set: {
@@ -376,29 +454,71 @@ if (Meteor.isServer) {
                             type: json.tickets[i].type,
                             status: json.tickets[i].status,
                             priority: json.tickets[i].priority,
-                            created: json.tickets[i].created_at,
-                            updated: json.tickets[i].updated_at
+                            created: new Date(json.tickets[i].created_at),
+                            updated: new Date(json.tickets[i].updated_at)
                         }
                     }, [{multi: true}]);
                 }
             });
         },
-        saveTickets: function () {
-            var d = new Date(),
-                zendeskCalls = ['zendesk_UnsolvedTicketsCount', 'zendesk_OpenTicketsCount', 'zendesk_NewTicketsCount', 'zendesk_PendingTicketsCount', 'zendesk_HoldTicketsCount'],
-                dataLabel = ['Total Tickets', 'Open Tickets', 'New Tickets', 'Pending Tickets', 'On-Hold Tickets'];
-            for (var i = 0; i < zendeskCalls.length; i++) {
-                Meteor.call(zendeskCalls[i], function (err, res) {
-                    var json = JSON.parse(res);
-                    var name = dataLabel[i];
-                    var val = json.view_count.pretty;
-                    Tickets.insert({
-                        'name': name,
-                        'value': val,
-                        'datetime': d
-                    });
+        getLatestTicketStats: function () {
+          return ticketStats.find({}, {sort: {date: -1}, limit: 1}).fetch();
+        },
+        saveTicketStats: function () {
+            Meteor.call('getTicketStats', function (err, res) {
+                var json = JSON.parse(res);
+                var unsolvedTickets = 0,
+                    openTickets = 0,
+                    newTickets = 0,
+                    pendingTickets = 0,
+                    onholdTickets = 0,
+                    solvedTickets7Days = 0,
+                    solvedTickets30Days = 0,
+                    newTickets30Days = 0,
+                    newTickets7Days = 0;
+                for (var i = 0; i < json.view_counts.length; i++) {
+                    var id = json.view_counts[i].view_id;
+                    if(id == '32396347') {
+                        unsolvedTickets = json.view_counts[i].pretty;
+                    }
+                    if(id == '38506605') {
+                        openTickets = json.view_counts[i].pretty;
+                    }
+                    if(id == '34858922') {
+                        newTickets = json.view_counts[i].pretty;
+                    }
+                    if(id == '38151799') {
+                        pendingTickets = json.view_counts[i].pretty;
+                    }
+                    if(id == '49913396') {
+                        onholdTickets = json.view_counts[i].pretty;
+                    }
+                    if(id == '48754163') {
+                        solvedTickets7Days = json.view_counts[i].pretty;
+                    }
+                    if(id == '48754173') {
+                        solvedTickets30Days = json.view_counts[i].pretty;
+                    }
+                    if(id == '50029956') {
+                        newTickets30Days = json.view_counts[i].pretty;
+                    }
+                    if(id == '48754243') {
+                        newTickets7Days = json.view_counts[i].pretty;
+                    }
+                }
+                ticketStats.insert({
+                    unsolvedTickets: unsolvedTickets.replace('~',''),
+                    openTickets: openTickets.replace('~',''),
+                    newTickets: newTickets.replace('~',''),
+                    pendingTickets: pendingTickets.replace('~',''),
+                    onholdTickets: onholdTickets.replace('~',''),
+                    solvedTickets7Days: solvedTickets7Days.replace('~',''),
+                    solvedTickets30Days: solvedTickets30Days.replace('~',''),
+                    newTickets30Days: newTickets30Days.replace('~',''),
+                    newTickets7Days: newTickets7Days.replace('~',''),
+                    date: new Date()
                 });
-            }
+            });
         },
         saveCommits: function () {
             Meteor.call('beanstalk_CommitFeed', function (err, res) {
@@ -561,20 +681,61 @@ if (Meteor.isServer) {
             }
             return data;
         },
-        getCommitTrend: function() {
+        getTicketTrend: function() {
             pipeline = [
                 {$project : {
-                    day : {$dayOfYear : "$time"}
+                    day : {$dayOfYear : "$created"}
                 }},
-                {$sort: {day: -1}},
                 { "$group": {
                     "_id": {
                         day: "$day"
                     },
                     "count": { "$sum": 1 }
-                }}
+                }},
+                {$sort: {day: -1}}
+            ];
+            var res = ticketFeed.aggregate(pipeline);
+            var t = new Date();
+            var s = new Date(t.getFullYear(), 0, 1);
+            var o = 1000 * 60 * 60 * 24;
+            var c = Math.ceil((t.getTime() - s.getTime()) / (o));
+            var data = [];
+            for (var i = 0; i < res.length; i++) {
+                if(res[i]['_id'].day <= c) {
+                    data.push({
+                        'day': res[i]['_id'].day,
+                        'count': res[i].count
+                    });
+                }
+            }
+            for (var i = 0; i <= c; i++) {
+                if(!("key" in data)) {
+
+                }
+                if(res[i]['_id'].day <= c) {
+                    data.push({
+                        'day': res[i]['_id'].day,
+                        'count': res[i].count
+                    });
+                }
+            }
+            return data;
+        },
+        getCommitTrend: function() {
+            pipeline = [
+                {$project : {
+                    day : {$dayOfYear : "$time"}
+                }},
+                { "$group": {
+                    "_id": {
+                        day: "$day"
+                    },
+                    "count": { "$sum": 1 }
+                }},
+                {'$sort': {'_id.day': 1}}
             ];
             var res = Commits.aggregate(pipeline);
+            console.log(res);
             var data = [];
             for(var i = 0; i < res.length; i++) {
                 data.push({
@@ -584,9 +745,10 @@ if (Meteor.isServer) {
             }
             return data;
         },
-        zendesk_UnsolvedTicketsCount: function () {
+        getTicketStats: function () {
             var zendesk = Async.runSync(function (done) {
-                ZendeskOptions.url = ZendeskUrl + '32396347/count.json';
+                var viewObj = '32396347,38506605,34858922,38151799,49913396,48754163,48754173,50029956,48754243';
+                ZendeskOptions.url = ZendeskUrl + 'count_many.json?ids=' + viewObj + '';
                 request(ZendeskOptions, function (error, response, body) {
                     if (error) throw new Error(error);
                     done(null, body);
@@ -594,49 +756,9 @@ if (Meteor.isServer) {
             });
             return zendesk.result;
         },
-        zendesk_OpenTickets: function () {
+        getTicketFeed: function () {
             var zendesk = Async.runSync(function (done) {
-                ZendeskOptions.url = ZendeskUrl + '38506605/tickets.json';
-                request(ZendeskOptions, function (error, response, body) {
-                    if (error) throw new Error(error);
-                    done(null, body);
-                });
-            });
-            return zendesk.result;
-        },
-        zendesk_OpenTicketsCount: function () {
-            var zendesk = Async.runSync(function (done) {
-                ZendeskOptions.url = ZendeskUrl + '38506605/count.json';
-                request(ZendeskOptions, function (error, response, body) {
-                    if (error) throw new Error(error);
-                    done(null, body);
-                });
-            });
-            return zendesk.result;
-        },
-        zendesk_NewTicketsCount: function () {
-            var zendesk = Async.runSync(function (done) {
-                ZendeskOptions.url = ZendeskUrl + '34858922/count.json';
-                request(ZendeskOptions, function (error, response, body) {
-                    if (error) throw new Error(error);
-                    done(null, body);
-                });
-            });
-            return zendesk.result;
-        },
-        zendesk_PendingTicketsCount: function () {
-            var zendesk = Async.runSync(function (done) {
-                ZendeskOptions.url = ZendeskUrl + '38151799/count.json';
-                request(ZendeskOptions, function (error, response, body) {
-                    if (error) throw new Error(error);
-                    done(null, body);
-                });
-            });
-            return zendesk.result;
-        },
-        zendesk_HoldTicketsCount: function () {
-            var zendesk = Async.runSync(function (done) {
-                ZendeskOptions.url = ZendeskUrl + '49913396/count.json';
+                ZendeskOptions.url = ZendeskUrl + '32396347/tickets.json';
                 request(ZendeskOptions, function (error, response, body) {
                     if (error) throw new Error(error);
                     done(null, body);
