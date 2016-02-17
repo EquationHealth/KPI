@@ -60,6 +60,58 @@ if (Meteor.isClient) {
                 }
             });
 
+            Meteor.call('getTicketType', function (err, res) {
+                $scope.ticketTypes = res;
+                $scope.chartTicketTypes = {};
+                $scope.chartTicketTypes.type = "ColumnChart";
+                var chartCols = [
+                    {label: 'Type', type: 'string'},
+                    {label: 'Tickets', type: 'number'}
+                ];
+                var chartData = [];
+                for (var i = 0; i < res.length; i++) {
+                    if(res[i].type != null) {
+                        chartData.push({
+                            c: [
+                                {v: res[i].type},
+                                {v: res[i].count}
+                            ]
+                        });
+                    }
+                }
+                $scope.chartTicketTypes.data = {'cols': chartCols, 'rows': chartData};
+                $scope.chartTicketTypes.options = {
+                    colors: ['#04667a'],
+                    legend: 'none'
+                };
+                $scope.$apply();
+            });
+
+            Meteor.call('getTicketDayOfWeek', function (err, res) {
+                $scope.ticketDayOfWeek = res;
+                $scope.chartTicketDayOfWeek = {};
+                $scope.chartTicketDayOfWeek.type = "ColumnChart";
+                var chartCols = [
+                    {label: 'Day of Week', type: 'string'},
+                    {label: 'Tickets', type: 'number'}
+                ];
+                var chartData = [];
+                for (var key in res[0]) {
+                    chartData.push({
+                        c: [
+                            {v: key},
+                            {v: res[0][key]}
+                        ]
+                    });
+                }
+                $scope.chartTicketDayOfWeek.data = {'cols': chartCols, 'rows': chartData};
+                $scope.chartTicketDayOfWeek.options = {
+                    colors: ['#04667a'],
+                    legend: 'none'
+                };
+                $scope.$apply();
+            });
+
             //Meteor.call('getTicketTrend', function (err, res) {
             //    var recentTickets = res;
             //    $scope.chartTicketTrend = {};
@@ -681,6 +733,63 @@ if (Meteor.isServer) {
             }
             return data;
         },
+        getTicketType: function() {
+            pipeline = [
+                { "$group": {
+                    "_id": {
+                        type: "$type"
+                    },
+                    "count": { "$sum": 1 }
+                }}
+            ];
+            var res = ticketFeed.aggregate(pipeline);
+            var data = [];
+            for(var i = 0; i < res.length; i++) {
+                data.push({
+                    'type': res[i]['_id'].type,
+                    'count': res[i].count
+                });
+            }
+            return data;
+        },
+        getTicketDayOfWeek: function() {
+            var dayOfWeek = [
+                'null',
+                'Sun',
+                'Mon',
+                'Tues',
+                'Wed',
+                'Thur',
+                'Fri',
+                'Sat'
+            ];
+            pipeline = [
+                {$project : {
+                    day : {$dayOfWeek : "$created"}
+                }},
+                { "$group": {
+                    "_id": {
+                        day: "$day"
+                    },
+                    "count": { "$sum": 1 }
+                }}
+            ];
+            var res = ticketFeed.aggregate(pipeline);
+            var days = {
+                'Mon': 0,
+                'Tues': 0,
+                'Wed': 0,
+                'Thur': 0,
+                'Fri': 0
+            };
+            for (var i = 0; i < res.length; i++) {
+                var day = dayOfWeek[res[i]['_id'].day];
+                days[day] += res[i].count;
+            }
+            var data = [];
+            data.push(days);
+            return data;
+        },
         getTicketTrend: function() {
             pipeline = [
                 {$project : {
@@ -735,7 +844,6 @@ if (Meteor.isServer) {
                 {'$sort': {'_id.day': 1}}
             ];
             var res = Commits.aggregate(pipeline);
-            console.log(res);
             var data = [];
             for(var i = 0; i < res.length; i++) {
                 data.push({

@@ -44,6 +44,12 @@ h1.section {
     font-size: 12px;
 }
 
+h4.chart-title {
+    text-align: center;
+    color: #999;
+    font-weight: 300;
+}
+
 /* Panels */
 .panel-default > .panel-heading {
     color: #04667a;

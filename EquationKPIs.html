@@ -57,6 +57,17 @@
         </div>
 
         <div class="row">
+            <div class="col-md-6">
+                <h4 class="chart-title">Tickets by Type</h4>
+                <div google-chart chart="chartTicketTypes" style="height:100px; width:100%;"></div>
+            </div>
+            <div class="col-md-6">
+                <h4 class="chart-title">Tickets by Day of Week</h4>
+                <div google-chart chart="chartTicketDayOfWeek" style="height:100px; width:100%;"></div>
+            </div>
+        </div>
+
+        <div class="row">
             <div class="col-md-12">
                 <div class="panel panel-default">
                     <div class="panel-heading">Ticket Activity</div>
@@ -66,8 +77,8 @@
                     <table class="table table-striped">
                         <thead>
                         <th>Subject</th>
-                        <th>Type</th>
                         <th>Status</th>
+                        <th>Type</th>
                         <th>Priority</th>
                         <th>Created</th>
                         <th>Updated</th>
