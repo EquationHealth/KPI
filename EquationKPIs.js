@@ -155,7 +155,7 @@ if (Meteor.isClient) {
             Meteor.call('getCommitTrend', function (err, res) {
                 var recentCommits = res;
                 $scope.chartCommitTrend = {};
-                $scope.chartCommitTrend.type = "LineChart";
+                $scope.chartCommitTrend.type = "ColumnChart";
                 var chartCols = [
                     {label: 'Day', type: 'string'},
                     {label: 'Commits', type: 'number'}
@@ -841,7 +841,8 @@ if (Meteor.isServer) {
                     },
                     "count": { "$sum": 1 }
                 }},
-                {'$sort': {'_id.day': 1}}
+                {'$sort': {'_id.day': 1}},
+                { $limit : 30 }
             ];
             var res = Commits.aggregate(pipeline);
             var data = [];
