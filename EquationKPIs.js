@@ -280,7 +280,7 @@ if (Meteor.isClient) {
                 Meteor.call('getCommitTrend', function (err, res) {
                     var recentCommits = res;
                     $scope.chartCommitTrend = {};
-                    $scope.chartCommitTrend.type = "ChartChart";
+                    $scope.chartCommitTrend.type = "ColumnChart";
                     var chartCols = [
                         {label: 'Day', type: 'string'},
                         {label: 'Commits', type: 'number'}
