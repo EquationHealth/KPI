@@ -155,7 +155,7 @@ if (Meteor.isClient) {
             Meteor.call('getCommitTrend', function (err, res) {
                 var recentCommits = res;
                 $scope.chartCommitTrend = {};
-                $scope.chartCommitTrend.type = "ColumnChart";
+                $scope.chartCommitTrend.type = "LineChart";
                 var chartCols = [
                     {label: 'Day', type: 'string'},
                     {label: 'Commits', type: 'number'}
@@ -280,7 +280,7 @@ if (Meteor.isClient) {
                 Meteor.call('getCommitTrend', function (err, res) {
                     var recentCommits = res;
                     $scope.chartCommitTrend = {};
-                    $scope.chartCommitTrend.type = "ColumnChart";
+                    $scope.chartCommitTrend.type = "LineChart";
                     var chartCols = [
                         {label: 'Day', type: 'string'},
                         {label: 'Commits', type: 'number'}
